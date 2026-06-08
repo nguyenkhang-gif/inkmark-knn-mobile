@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# SSL certs
+*.pem
+
+# User data
+imgs/
+scans/
+
+# OS
+.DS_Store
