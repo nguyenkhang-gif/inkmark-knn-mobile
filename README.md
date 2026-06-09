@@ -6,6 +6,23 @@ Available as a native Android app (Capacitor) and a local web app (Vite dev serv
 
 ---
 
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| UI | Vanilla JS + CSS (no framework) |
+| Bundler | Vite 8 |
+| Markdown render | marked 18 |
+| Diagram render | Mermaid 11 |
+| AI / OCR | Google Gemini API (`@google/generative-ai`) |
+| Native bridge | Capacitor 8 |
+| Camera | Browser `getUserMedia` (in-app, no redirect) |
+| File storage | `@capacitor/filesystem` → Android internal storage |
+| Preferences | `@capacitor/preferences` → SharedPreferences |
+| Android build | Gradle + `adb` |
+
+---
+
 ## Architecture
 
 ```mermaid
