@@ -13,7 +13,7 @@ graph TD
     subgraph Source["Source (this repo)"]
         HTML[index.html]
         CSS[src/style.css]
-        JS[src/*.js]
+        JS[src modules]
         ENV[.env]
         ANDROID[android/]
     end
@@ -24,21 +24,25 @@ graph TD
     end
 
     subgraph App["Capacitor Android App"]
-        WV[WebView\nUI layer]
-        FS[@capacitor/filesystem]
-        PREF[@capacitor/preferences]
-        CAM[getUserMedia\nIn-app camera]
+        WV[WebView UI]
+        FS[filesystem plugin]
+        PREF[preferences plugin]
+        CAM[getUserMedia camera]
     end
 
     GEMINI[Google Gemini API]
-    STORAGE[Android Internal Storage\nnoteScaner/imgs\nnoteScaner/scans]
+    STORAGE[Android Internal Storage]
 
-    HTML & CSS & JS --> VITE
+    HTML --> VITE
+    CSS --> VITE
+    JS --> VITE
     ENV --> VITE
     VITE --> DIST
     DIST -->|cap sync| WV
-    ANDROID -->|gradlew| APK
-    WV --> FS & PREF & CAM
+    ANDROID -->|gradlew| APK[app-debug.apk]
+    WV --> FS
+    WV --> PREF
+    WV --> CAM
     FS --> STORAGE
     WV -->|GEMINI_KEY| GEMINI
 ```
