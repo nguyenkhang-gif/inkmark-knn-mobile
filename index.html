@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>NoteScaner</title>
+</head>
+<body>
+
+  <!-- Fixed header -->
+  <header>
+    <div class="header-brand">
+      <img src="/appImg.jpeg" alt="NoteScaner" />
+      <h1>NoteScaner</h1>
+    </div>
+    <span id="status"></span>
+  </header>
+
+  <!-- Scrollable content -->
+  <main>
+
+    <!-- SCAN -->
+    <section id="sec-scan" class="section active">
+      <div class="input-tabs">
+        <button class="input-tab" onclick="switchInputTab('camera')">Camera</button>
+        <button class="input-tab active" onclick="switchInputTab('upload')">Upload</button>
+      </div>
+
+      <!-- In-app camera -->
+      <div id="cameraSection">
+        <div class="camera-wrap" id="cameraWrap">
+          <video id="cameraFeed" autoplay playsinline muted></video>
+          <canvas id="cameraCanvas"></canvas>
+        </div>
+        <div id="cameraIdle">
+          <button class="btn btn-primary" onclick="startCamera()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Start Camera
+          </button>
+        </div>
+        <div class="btn-row" id="cameraControls" style="display:none">
+          <button class="btn btn-secondary" onclick="stopCamera()">Cancel</button>
+          <button class="btn btn-primary" onclick="capturePhoto()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            Capture
+          </button>
+        </div>
+        <img id="preview" />
+        <div class="btn-row" id="saveRow" style="display:none">
+          <button class="btn btn-secondary" onclick="retakePhoto()">Retake</button>
+          <button class="btn btn-primary" onclick="saveNativeSnap()">Save Image</button>
+        </div>
+      </div>
+
+      <!-- Upload from gallery / file picker -->
+      <div id="uploadSection" class="active">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+          <input type="file" id="fileInput" accept="image/*" onchange="onFileSelected(event)" />
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <p>Tap to choose from gallery</p>
+          <small>JPG · PNG · up to 20 MB</small>
+        </div>
+        <img id="uploadPreview" />
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" style="display:none">Save Image</button>
+      </div>
+    </section>
+
+    <!-- IMAGES -->
+    <section id="sec-images" class="section">
+      <div class="gallery-header">
+        <span class="card-title" style="margin:0">Images</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="scanSelectedBtn" class="btn btn-primary" style="display:none;padding:6px 12px;font-size:0.75rem;border-radius:6px" onclick="scanSelected()">Scan Selected</button>
+          <button class="btn btn-danger" style="padding:6px 12px;font-size:0.75rem;border-radius:6px" onclick="deleteAll()">Delete All</button>
+        </div>
+      </div>
+      <div class="gallery-grid" id="gallery"></div>
+      <div class="pagination" id="pagination" style="display:none">
+        <button id="prevBtn" onclick="changePage(-1)">← Prev</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" onclick="changePage(1)">Next →</button>
+      </div>
+    </section>
+
+    <!-- NOTES -->
+    <section id="sec-notes" class="section">
+      <div class="gallery-header">
+        <span class="card-title" style="margin:0">Saved Notes</span>
+        <button class="btn btn-secondary" style="padding:6px 12px;font-size:0.75rem;border-radius:6px" onclick="loadNotes()">Refresh</button>
+      </div>
+      <div class="notes-list" id="notesList"></div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="sec-result" class="section">
+      <div class="result-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <polyline points="9 15 11 17 15 13"/>
+        </svg>
+        <div class="result-filename" id="resultFilename"></div>
+      </div>
+      <div class="result-toolbar">
+        <button class="btn btn-secondary" onclick="copyResult()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy MD
+        </button>
+        <button class="btn btn-primary" onclick="downloadResult()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download .md
+        </button>
+        <button class="btn btn-secondary" style="width:100%;margin-top:4px" onclick="saveTodayResult()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Save as Today
+        </button>
+      </div>
+      <div class="markdown-body" id="resultContent"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="sec-settings" class="section">
+      <div class="card">
+        <p class="card-title">Gemini API Key</p>
+        <label class="settings-label">API Key</label>
+        <input type="password" id="apiKeyInput" class="settings-input" placeholder="Paste your Gemini API key…" />
+        <label class="settings-label">Model</label>
+        <input type="text" id="modelInput" class="settings-input" placeholder="e.g. gemini-2.0-flash" />
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+      <div class="card">
+        <p class="card-title">Paths</p>
+        <label class="settings-label">Images folder</label>
+        <div class="path-row">
+          <span class="path-display" id="imgsDirDisplay">noteScaner/imgs</span>
+        </div>
+        <label class="settings-label" style="margin-top:10px">Notes folder</label>
+        <div class="path-row">
+          <span class="path-display" id="scansDirDisplay">noteScaner/scans</span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="card-title">Storage</p>
+        <button class="btn btn-danger" style="width:100%" onclick="clearAllData()">Clear All App Data</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom nav -->
+  <nav>
+    <button id="nav-scan" class="active" onclick="showSection('scan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Scan
+    </button>
+    <button id="nav-images" onclick="showSection('images')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Images
+    </button>
+    <button id="nav-notes" onclick="showSection('notes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      Notes
+    </button>
+    <button id="nav-result" onclick="showSection('result')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <polyline points="9 15 11 17 15 13"/>
+      </svg>
+      Result
+      <span class="badge"></span>
+    </button>
+    <button id="nav-settings" onclick="showSection('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Settings
+    </button>
+  </nav>
+
+
+  <!-- Scan progress overlay -->
+  <div class="scan-overlay" id="scanOverlay">
+    <div class="scan-overlay-inner">
+      <div class="scan-spinner"></div>
+      <p class="scan-overlay-label">Scanning…</p>
+      <p class="scan-overlay-sub">Processing with Gemini</p>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -9,42 +9,57 @@ function ask(rl, question, fallback = '') {
   });
 }
 
-const PKG_PATH = path.join(__dirname, 'package.json');
+const ROOT = __dirname;
 
 const pkg = {
-  name: 'notescaner',
+  name: 'notescaner-android',
   version: '1.0.0',
-  description: 'Scan handwritten notes with camera, extract text via Gemini, export as Markdown',
-  main: 'server.js',
   scripts: {
-    start: 'node server.js',
+    dev:   'vite',
+    build: 'vite build',
+    sync:  'vite build && cap sync android',
+    open:  'cap open android',
+    apk:   'export JAVA_HOME=/opt/homebrew/opt/openjdk@21 && export PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH && export ANDROID_HOME=$HOME/Library/Android/sdk && vite build && cap sync android && cd android && ./gradlew assembleDebug && cp app/build/outputs/apk/debug/app-debug.apk ../apk/NoteScaner.apk && echo \'APK ready at noteScaner-android/apk/NoteScaner.apk\'',
+    run:   'export JAVA_HOME=/opt/homebrew/opt/openjdk@21 && export PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH && export ANDROID_HOME=$HOME/Library/Android/sdk && vite build && cap sync android && cd android && ./gradlew assembleDebug && $HOME/Library/Android/sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk && echo \'App installed on device\'',
+    log:   '$HOME/Library/Android/sdk/platform-tools/adb logcat --pid=$($HOME/Library/Android/sdk/platform-tools/adb shell pidof -s com.notescaner.app) -v time | grep -v \'setRequestedFrameRate\\|GPUAUX\'',
   },
   dependencies: {
-    axios: '^1.13.6',
-    dotenv: '^17.4.2',
-    express: '^5.2.1',
-    multer: '^2.1.1',
-    'qrcode-terminal': '^0.12.0',
+    '@capacitor/android':    '^8.4.0',
+    '@capacitor/camera':     '^8.2.0',
+    '@capacitor/core':       '^8.4.0',
+    '@capacitor/filesystem': '^8.1.2',
+    '@capacitor/preferences':'^^8.0.1',
+    '@google/generative-ai': '^0.24.1',
+    'marked':                '^18.0.5',
+    'mermaid':               '^11.15.0',
+  },
+  devDependencies: {
+    vite: '^8.0.16',
   },
 };
 
 (async () => {
-  console.log('\n  NoteScaner — init\n');
+  console.log('\n  NoteScaner Android — init\n');
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-  // Write package.json
-  fs.writeFileSync(PKG_PATH, JSON.stringify(pkg, null, 2));
-  console.log('  ✔ package.json created');
+  // package.json
+  const pkgPath = path.join(ROOT, 'package.json');
+  if (!fs.existsSync(pkgPath)) {
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+    console.log('  ✔ package.json created');
+  } else {
+    console.log('  · package.json already exists — skipped');
+  }
 
   // .env
-  const envPath = path.join(__dirname, '.env');
+  const envPath = path.join(ROOT, '.env');
   if (fs.existsSync(envPath)) {
     const overwrite = await ask(rl, '  .env already exists — overwrite? (y/N): ', 'n');
-    if (overwrite.toLowerCase() !== 'y') {
-      console.log('  · .env kept as-is\n');
-    } else {
+    if (overwrite.toLowerCase() === 'y') {
       await writeEnv(rl, envPath);
+    } else {
+      console.log('  · .env kept as-is');
     }
   } else {
     await writeEnv(rl, envPath);
@@ -52,39 +67,34 @@ const pkg = {
 
   rl.close();
 
-  // Create folders
-  ['imgs', 'scans'].forEach(dir => {
-    const p = path.join(__dirname, dir);
-    if (!fs.existsSync(p)) { fs.mkdirSync(p); console.log(`  ✔ ${dir}/ created`); }
-    else console.log(`  · ${dir}/ already exists`);
-  });
+  // apk/ output dir
+  const apkDir = path.join(ROOT, 'apk');
+  if (!fs.existsSync(apkDir)) { fs.mkdirSync(apkDir); console.log('  ✔ apk/ created'); }
 
   // npm install
   console.log('\n  Installing dependencies...\n');
   try {
-    execSync('npm install', { stdio: 'inherit', cwd: __dirname });
+    execSync('npm install', { stdio: 'inherit', cwd: ROOT });
     console.log('\n  ✔ Dependencies installed');
   } catch {
     console.error('\n  ✖ npm install failed — run it manually');
   }
 
   console.log('\n  Setup complete. Next steps:');
-  console.log('  1. (For HTTPS) Run: mkcert <your-local-ip> localhost 127.0.0.1');
-  console.log('  2. Run: node server.js\n');
+  console.log('  1. Connect your Android device with USB debugging enabled');
+  console.log('  2. Run: npm run run   (build + install to device)');
+  console.log('  3. Or:  npm run dev   (run as web app on localhost:3004)\n');
 })();
 
 async function writeEnv(rl, envPath) {
-  console.log('\n  Configure .env variables (press Enter to keep default)\n');
+  console.log('\n  Configure .env (press Enter to keep default)\n');
 
-  const key    = await ask(rl, '  GEMINI_KEY        : ');
-  const url    = await ask(rl, '  GEMINI_BASE_URL   [https://generativelanguage.googleapis.com/v1beta/models]: ',
-                                'https://generativelanguage.googleapis.com/v1beta/models');
-  const model  = await ask(rl, '  GEMINI_MODEL      [gemma-4-26b-a4b-it]: ', 'gemma-4-26b-a4b-it');
-  const port   = await ask(rl, '  PORT              [3456]: ', '3456');
+  const key   = await ask(rl, '  GEMINI_KEY    : ');
+  const model = await ask(rl, '  GEMINI_MODEL  [gemini-2.0-flash]: ', 'gemini-2.0-flash');
+  const port  = await ask(rl, '  PORT          [3004]: ', '3004');
 
   const content = [
     `GEMINI_KEY=${key || 'your_api_key_here'}`,
-    `GEMINI_BASE_URL=${url}`,
     `GEMINI_MODEL=${model}`,
     `PORT=${port}`,
   ].join('\n') + '\n';
