@@ -2,6 +2,8 @@
 
 [![Download APK](https://img.shields.io/github/v/release/nguyenkhang-gif/inkmark-knn-mobile?label=Download%20APK&logo=android&color=3DDC84)](https://github.com/nguyenkhang-gif/inkmark-knn-mobile/releases/latest/download/NoteScaner1.0.2.apk)
 
+App images (logo, background) by [@M_terU116](https://x.com/M_terU116).
+
 NoteScaner turns handwritten notes into clean Markdown using Google Gemini AI. Take a photo or pick images from the gallery, tap Scan, and get structured Markdown — headings, lists, tables, and Mermaid diagrams — saved instantly.
 
 Available as a native Android app (Capacitor) and a local web app (Vite dev server).
