@@ -6,6 +6,14 @@ Available as a native Android app (Capacitor) and a local web app (Vite dev serv
 
 ---
 
+## Screenshots
+
+| Main | Notes | Settings |
+|:---:|:---:|:---:|
+| ![Main screen](appImgs/main.jpg) | ![Notes screen](appImgs/notes.jpg) | ![Config screen](appImgs/config.jpg) |
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
