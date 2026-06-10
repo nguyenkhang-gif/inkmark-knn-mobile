@@ -257,6 +257,12 @@ noteScaner-android/
 
 ---
 
+## Credits
+
+App images (logo, background) by [@M_terU116](https://x.com/M_terU116).
+
+---
+
 ## Troubleshooting
 
 **Camera not working**
