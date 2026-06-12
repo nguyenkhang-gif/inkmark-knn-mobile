@@ -24,8 +24,8 @@ android/app/src/main/assets/capacitor.config.json
 android/.idea/
 
 # Old prototype files (replaced by Vite + Capacitor)
-server.js
-scan.js
+/server.js
+/scan.js
 imgs/
 scans/
 docs/

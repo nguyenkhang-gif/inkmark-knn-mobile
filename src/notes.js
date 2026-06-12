@@ -36,7 +36,9 @@ export async function loadNotes() {
     return;
   }
 
-  list.innerHTML = files.map(f => `
+  list.innerHTML = files.map(f => {
+    const date = formatNoteDate(f);
+    return `
     <div class="note-item" id="note-${f}" onclick="openNote('${f}')">
       <span class="note-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -46,14 +48,14 @@ export async function loadNotes() {
       </span>
       <div class="note-info" id="note-info-${f}">
         <div class="note-name">${f.replace('.md', '')}</div>
-        ${formatNoteDate(f) ? `<div class="note-date">${formatNoteDate(f)}</div>` : ''}
+        ${date ? `<div class="note-date">${date}</div>` : ''}
       </div>
       <div class="note-actions">
         <button class="note-rename" onclick="event.stopPropagation(); startRename('${f}')">✏</button>
         <button class="note-del" onclick="event.stopPropagation(); deleteNote('${f}')">Del</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 export async function openNote(filename) {

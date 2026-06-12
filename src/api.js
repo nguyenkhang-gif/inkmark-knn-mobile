@@ -27,10 +27,10 @@ export async function createGeminiModel(apiKey) {
   return genAI.getGenerativeModel({ model: model || __GEMINI_MODEL__ });
 }
 
-export async function streamScan(apiKey, base64, mimeType) {
+export async function streamScan(apiKey, base64, mimeType, signal) {
   const gemini = await createGeminiModel(apiKey);
-  return gemini.generateContentStream([
-    { text: PROMPT },
-    { inlineData: { data: base64, mimeType } },
-  ]);
+  return gemini.generateContentStream(
+    [{ text: PROMPT }, { inlineData: { data: base64, mimeType } }],
+    signal ? { signal } : undefined,
+  );
 }

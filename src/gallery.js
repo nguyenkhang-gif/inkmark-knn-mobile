@@ -102,6 +102,7 @@ export async function deleteAll() {
 export async function deleteImage(filename) {
   if (!confirm(`Delete ${filename}?`)) return;
   await Filesystem.deleteFile({ path: `${IMGS_DIR}/${filename}`, directory: Directory.Data });
+  selectedCells.delete(filename);
   showToast(`Deleted ${filename}`);
   loadGallery();
 }
